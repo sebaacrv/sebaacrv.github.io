@@ -41,23 +41,25 @@ def add_task(*ags, **kws):
   if not nombre or not aporte:
       return None
   else:
-    try:
-        int(new_task_content.element.value)
-        print("Eso no es un nombre")
-    except ValueError:
-      #Crear persona
-        task_id = f"{len(persona)+1}"
-        task = {
-            "id": task_id,
-            "content": new_task_content.element.value,
-            "done": False,
-            }
-        try:
-            aporte=float(new_task_content2.element.value)
-            task['valor_aportado']=aporte
-        except ValueError:
-            print('Eso no es un número')
-
+    if float(aporte)>=0:
+      try:
+          int(new_task_content.element.value)
+          print("Eso no es un nombre")
+      except ValueError:
+        #Crear persona
+          task_id = f"{len(persona)+1}"
+          task = {
+              "id": task_id,
+              "content": new_task_content.element.value,
+              "done": False,
+              }
+          try:
+              aporte=float(new_task_content2.element.value)
+              task['valor_aportado']=aporte
+          except ValueError:
+              print('Eso no es un número')
+    else:
+       print('No pueden existir aportes negativos')
     persona.append(task)
 
     # add the task element to the page as new node in the list by cloning from a

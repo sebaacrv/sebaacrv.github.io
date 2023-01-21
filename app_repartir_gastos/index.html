@@ -22,7 +22,7 @@ def add_class(element, class_name):
 
 
 tasks = []
-
+suma_aportes=0
 # define the task template that will be use to render new templates to the page
 task_template = Element("task-template").select(".task", from_content=True)
 task_list = Element("list-tasks-container")
@@ -32,9 +32,13 @@ task_template2 = Element("task-template2").select(".task", from_content=True)
 task_list2 = Element("list-tasks-container")
 new_task_content2 = Element("new-task-content2")
 
-persona=[]
+aportes_totales = Element("aportes_totales").select(".task", from_content=True)
+aportes_totales_valor = Element("col_tot_aport")
 
+persona=[]
+contador=0
 def add_task(*ags, **kws):
+  global suma_aportes, contador
     # ignore empty task
   nombre=new_task_content.element.value
   aporte=new_task_content2.element.value
@@ -56,6 +60,7 @@ def add_task(*ags, **kws):
           try:
               aporte=float(new_task_content2.element.value)
               task['valor_aportado']=aporte
+              suma_aportes+=task['valor_aportado']
           except ValueError:
               print('Eso no es un número')
     else:
@@ -75,6 +80,22 @@ def add_task(*ags, **kws):
     aporte_html_content.element.innerText =f'{task["id"]}) {task["content"]}'
     task_list.element.appendChild(aporte_html.element)
 
+    #COMPROBAMOS SI YA EXISTE UN TEXTO CON EL NÚMERO
+    if contador==0:
+        aport_tot = aportes_totales.clone(task_id, to=task_list)
+        aport_tot_content = aport_tot.select("p")
+        aport_tot_content.element.innerText = f'El total de lo gastado hasta ahora es: $ {suma_aportes}'
+        task_list.element.appendChild(aport_tot.element)
+        contador+=1
+    else:
+      elemento_a_limpiar=Element('aportes_totales')
+      elemento_a_limpiar.clear()
+      aport_tot = aportes_totales.clone(task_id, to=task_list)
+      aport_tot_content = aport_tot.select("p")
+      aport_tot_content.element.innerText = f'El total de lo gastado hasta ahora es: $ {suma_aportes}'
+      task_list.element.appendChild(aport_tot.element)
+
+
     new_task_content.clear()
     new_task_content2.clear()
 
@@ -93,11 +114,12 @@ def add_task_event(e):
         add_task()
 
 def limpiar(*ags, **kws):
-      global persona
+      global persona,contador,suma_aportes
       elemento_a_limpiar=Element('list-tasks-container')
       elemento_a_limpiar.clear()
       persona=[]
-
+      contador=0
+      suma_aportes=0
 def calculo_final(*ags, **kws):
         cantidad_gente=len(persona)
         total_gastos=0
@@ -126,7 +148,10 @@ def calculo_final(*ags, **kws):
                     aporte_html_content = aporte_html.select("p")
                     aporte_html_content.element.innerText =f'{persona_actual["content"]} no tiene que poner nada'
                     task_list.element.appendChild(aporte_html.element)
-
+                    aporte_html = task_template2.clone(task_id, to=task_list)
+                    aporte_html_content = aporte_html.select("p")
+                    aporte_html_content.element.innerText =f'Cada uno tiene que poner {suma_aportes/len(persona)}'
+                    task_list.element.appendChild(aporte_html.element)
 
   </py-script>
 
@@ -141,25 +166,36 @@ def calculo_final(*ags, **kws):
       <br>
       <br>
       <h7 class="font-bold text-gray-800 uppercase tracking-tight">El botón borrar todo, borra todo. El botón de calculame esta debe ser apretado únicamente después de cargar a todos manualmente, la carga se hace apretando "Añadir a la ronda".</h7>
+      <br>
+      <br>
+      <div id="col_tot_aport" class="flex flex-col-reverse mt-4">
+      </div>
+        <template id="task-template2">
+            <section class="task bg-white my-1">
+                <label for="flex items-center p-2 ">
+                    <p class="m-0 inline"></p>
+                </label>
+            </section>
+        </template>
     </div>
     <div>
-    <div>
-      <input id="new-task-content" class="border flex-1 mr-3 border-gray-300 p-2 rounded" type="text" placeholder="Nombre de la persona">
-      <input id="new-task-content2" class="border flex-1 mr-3 border-gray-300 p-2 rounded" style="margin-top:5px" type="text" placeholder="Cantidad de plata que puso">
-      <button id="new-task-btn" class="p-2 text-white bg-blue-600 border border-blue-600 rounded" style="margin-top: 5px" type="submit" pys-onClick="add_task">
-        Añadir a la ronda
-      </button>
-      <button id="new-task-btn2" class="p-2 text-white bg-blue-600 border border-blue-600 rounded" style="margin-top: 5px" type="submit" pys-onClick="calculo_final">
-        Calculame esta
-      </button>
-      <button id="new-task-btn3" class="p-2 text-white bg-blue-600 border border-blue-600 rounded" style="margin-top: 5px" type="submit" pys-onClick="limpiar">
-        BORRA TODO
-      </button>
-    </div>
+        <div>
+          <input id="new-task-content" class="border flex-1 mr-3 border-gray-300 p-2 rounded" type="text" style="margin-left:55px" placeholder="Nombre de la persona">
+          <input id="new-task-content2" class="border flex-1 mr-3 border-gray-300 p-2 rounded" style="margin-top:5px;margin-left:55px" type="text" placeholder="Cantidad de plata que puso">
+          <button id="new-task-btn" class="p-2 text-white bg-blue-600 border border-blue-600 rounded" style="margin-top: 5px; margin-left:30px" type="submit" pys-onClick="add_task">
+            Añadir a la ronda
+          </button>
+          <button id="new-task-btn2" class="p-2 text-white bg-blue-600 border border-blue-600 rounded" style="margin-top: 5px" type="submit" pys-onClick="calculo_final">
+            Calculame esta
+          </button>
+          <button id="new-task-btn3" class="p-2 text-white bg-blue-600 border border-blue-600 rounded" style="margin-top: 5px; margin-left:90px" type="submit" pys-onClick="limpiar">
+            BORRA TODO
+          </button>
+        </div>
 
     <py-list id="myList"></py-list>
     <div id="list-tasks-container" class="flex flex-col-reverse mt-4">
-  </div>
+    </div>
 
     <template id="task-template">
         <section class="task bg-white my-1">
@@ -169,17 +205,15 @@ def calculo_final(*ags, **kws):
             </label>
         </section>
     </template>
-    <template id="task-template2">
+       <template id="aportes_totales">
         <section class="task bg-white my-1">
             <label for="flex items-center p-2 ">
                 <p class="m-0 inline"></p>
             </label>
         </section>
-    </template>
+       </template>
   </section>
-  <section>
 
-  </section>
   </main>
 </body>
 </html>
